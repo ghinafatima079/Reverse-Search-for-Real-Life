@@ -20,13 +20,35 @@ const responseSchema = {
   ],
 };
 
-const identificationPrompt = `Identify the product or object in this image and return only JSON matching the provided schema.
+const identificationPrompt = `Identify the real-world product or object shown in this image and return only JSON matching the provided schema.
 
-- Identify only what can reasonably be inferred from the image.
-- Use visible text, logos, labels, and visual characteristics.
-- Distinguish exact model identification from generic product or category identification.
-- Do not invent a model number. If the exact model cannot be determined, return null for model.
-- If the image is unclear or is not a recognizable product, use low confidence and set needsMoreInfo to true.`;
+IDENTIFICATION RULES:
+
+- Identify only information that is reasonably supported by the image.
+- Use visible text, logos, labels, model numbers, serial/model stickers, packaging, and distinctive visual characteristics as evidence.
+- Treat readable text and labels as stronger evidence than appearance alone.
+- Distinguish carefully between identifying a product category, identifying a brand, and identifying an exact model.
+
+MODEL IDENTIFICATION:
+
+- Only provide an exact model number when there is strong visual evidence for that specific model.
+- Prefer a model number that is visibly readable in the image.
+- Do not infer an exact model merely because the object looks similar to a known product.
+- Do not complete, guess, or fabricate partially visible model numbers.
+- Do not use a plausible-looking model number as a substitute for uncertainty.
+- If the brand and product can be identified but the exact model cannot, return null for model.
+- If multiple models could match the image and there is not enough evidence to distinguish them, return null for model.
+- If the image contains a model number but it is too blurry or incomplete to read reliably, return null for model.
+
+CONFIDENCE:
+
+- Use "high" only when the identification is strongly supported by visible evidence.
+- Use "medium" when the product or brand is reasonably identifiable but some details, especially the exact model, are uncertain.
+- Use "low" when the object is unclear, the image is poor, or the identification is largely uncertain.
+- Set needsMoreInfo to true whenever a clearer image or additional visible information would materially improve identification.
+- Never claim high confidence for an exact model based only on visual resemblance.
+
+If the image does not contain enough evidence to identify the object reliably, return null for uncertain fields rather than guessing.`;
 
 function getImageData(image) {
   if (typeof image !== "string" || !image.trim()) return null;
